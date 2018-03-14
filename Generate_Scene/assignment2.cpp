@@ -3,14 +3,12 @@
 
  Name: Shoji, Emily
 
- Collaborators:
+ Collaborators: Zapata, Alejandro
 
  Project Summary: Given a real world scene, replicate it using hierarchical modeling of the objects.
  Begin by building prisms from planes using 3D translations and rotations. These prisms
  are then used to form parts of objects.
 ***/
-
-
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -110,10 +108,11 @@ vector<GLfloat> scaling_matrix (float sx, float sy, float sz) {
 
 // Definition of a rotation matrix along the x-axis theta degrees
 vector<GLfloat> rotation_matrix_x (float theta) {
+    float theta_degrees = theta * (M_PI/180);
     vector<GLfloat> rotate_mat_x = {
         1.0, 0.0, 0.0, 0.0,
-        0.0, cos(theta), -sin(theta), 0.0,
-        0.0, sin(theta), cos(theta), 0.0,
+        0.0, cos(theta_degrees), -sin(theta_degrees), 0.0,
+        0.0, sin(theta_degrees), cos(theta_degrees), 0.0,
         0.0, 0.0, 0.0, 1.0
     };
     
@@ -123,11 +122,12 @@ vector<GLfloat> rotation_matrix_x (float theta) {
 
 // Definition of a rotation matrix along the y-axis by theta degrees
 vector<GLfloat> rotation_matrix_y (float theta) {
+    float theta_degrees = theta * (M_PI/180);
     vector<GLfloat> rotate_mat_y = {
-        cos(theta), 0.0, sin(theta), 0.0,
+        cos(theta_degrees), 0.0, sin(theta_degrees), 0.0,
         0.0, 1.0, 0.0, 0.0,
-        -sin(theta), 0.0, cos(theta), 0.0,
-        0.0, 0.0, 0.0, 1.0
+        -sin(theta_degrees), 0.0, cos(theta_degrees),
+        0.0, 0.0, 0.0, 0.0, 1.0
     };
     
     return rotate_mat_y;
@@ -136,9 +136,10 @@ vector<GLfloat> rotation_matrix_y (float theta) {
 
 // Definition of a rotation matrix along the z-axis by theta degrees
 vector<GLfloat> rotation_matrix_z (float theta) {
+    float theta_degrees = theta * (M_PI/180);
     vector<GLfloat> rotate_mat_z = {
-        cos(theta), -sin(theta), 0.0, 0.0,
-        sin(theta), cos(theta), 0.0, 0.0,
+        cos(theta_degrees), -sin(theta_degrees), 0.0, 0.0,
+        sin(theta_degrees), cos(theta_degrees), 0.0, 0.0,
         0.0, 0.0, 1.0, 0.0,
         0.0, 0.0, 0.0, 1.0
     };
@@ -149,7 +150,7 @@ void print_matrix (vector<GLfloat> A) {
     cout << "Matrix is:" << "\n";
     for (int k = 0; k < A.size(); k++) {
         cout << A[k] << ", ";
-        if ( (k+1) % 4 == 0){
+        if ( (k+1) % 3 == 0){
             cout << "\n";
         }
     }
@@ -174,18 +175,28 @@ vector<GLfloat> mat_mult(vector<GLfloat> A, vector<GLfloat> B) {
         result.push_back(c3);
     }
     
-    // print_matrix(result);
-    
     return to_cartesian_coord(result);
+}
+
+vector<GLfloat> vector_concat(vector<vector<GLfloat> > v) {
+    vector<GLfloat> result;
+    for (int i = 0; i < v.size(); i++) {
+        result.insert(result.end(), v[i].begin(), v[i].end());
+    }
+    return result;
 }
 
 // Builds a unit cube centered at the origin
 vector<GLfloat> build_cube() {
-    vector<GLfloat> result;
+    vector<GLfloat> front = mat_mult(translation_matrix(0, 0, 0.5), init_plane());
+    vector<GLfloat> back = mat_mult(translation_matrix(0, 0, -0.5), init_plane());
+    vector<GLfloat> left = mat_mult(translation_matrix(0.5, 0, 0), mat_mult( rotation_matrix_y(-90.0), init_plane()));
+    vector<GLfloat> right = mat_mult(translation_matrix(-0.5, 0, 0), mat_mult(rotation_matrix_y(90.0), init_plane()));
+    vector<GLfloat> top = mat_mult(translation_matrix(0, -0.5, 0), mat_mult(rotation_matrix_x(-90.0), init_plane()));;
+    vector<GLfloat> bottom = mat_mult(translation_matrix(0, 0.5, 0), mat_mult(rotation_matrix_x(90.0), init_plane()));;
     
-    // Creates a unit cube by transforming a set of planes
-    
-    return result;
+    vector<vector<GLfloat>> result = {front, back, left, right, top, bottom};
+    return vector_concat(result);
 }
 
 /**************************************************
@@ -199,6 +210,7 @@ vector<GLfloat> build_cube() {
  *************************************************/
 
 float theta = 0.0;
+int planes = 0;
 
 void setup() {
     // Enable the vertex array functionality
@@ -221,17 +233,180 @@ void init_camera() {
     glLoadIdentity();
     gluPerspective(50.0, 1.0, 2.0, 10.0);
     // Position camera at (2, 3, 5), attention at (0, 0, 0), up at (0, 1, 0)
-    gluLookAt(2.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(2.0, 3.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+}
+
+vector<GLfloat> create_chair() {
+    vector<GLfloat> chair_seat = mat_mult(translation_matrix(0, 1, 0.5), mat_mult(scaling_matrix(1, 0.2, 1), build_cube()));
+    vector<GLfloat> seat_back = mat_mult(translation_matrix(0, 2, 0.025), mat_mult(rotation_matrix_x(90.0), mat_mult(scaling_matrix(1, 0.05, 1.8), build_cube())));
+    vector<GLfloat> legFL = mat_mult(translation_matrix(-0.45, -0.1, 0.9), mat_mult(scaling_matrix(0.1, 2, 0.1), build_cube()));
+    vector<GLfloat> legBL = mat_mult(translation_matrix(0.9, 0, 0), legFL);
+    vector<GLfloat> legBR = mat_mult(translation_matrix(0, 0, -0.85), legFL);
+    vector<GLfloat> legFR = mat_mult(translation_matrix(0, 0, -0.85), legBL);
+    vector<vector<GLfloat>> chair_cubes = {chair_seat, seat_back, legFL, legBL, legBR, legFR};
+    
+    vector<GLfloat> chair = vector_concat(chair_cubes);
+    chair = mat_mult(translation_matrix(0, 0, -1), mat_mult(scaling_matrix(0.5, 0.5, 0.5), chair));
+    planes = (int)chair_cubes.size() * 6;
+    return chair;
+}
+
+vector<GLfloat> create_desk() {
+    vector<GLfloat> top;
+    vector<GLfloat> leg1;
+    vector<GLfloat> leg2;
+    vector<GLfloat> leg3;
+    vector<GLfloat> leg4;
+    
+    
+    vector<vector<GLfloat>> desk = {top, leg1, leg2, leg3, leg4};
+    return vector_concat(desk);
 }
 
 // Construct the scene using objects built from cubes/prisms
 GLfloat* init_scene() {
-    return nullptr;
+    vector<GLfloat> posZ  = mat_mult(translation_matrix(0, 0, 1), mat_mult(scaling_matrix(0.5, 0.5, 0.5), build_cube()));
+    vector<vector<GLfloat>> scene = {posZ, create_chair()};
+    return vector2array(vector_concat(scene));
 }
 
 // Construct the color mapping of the scene
 GLfloat* init_color() {
-    return nullptr;
+    vector<GLfloat> posz = {
+        1.0,    0.0,    0.0,
+        1.0,    0.0,    0.0,
+        1.0,    0.0,    0.0,
+        1.0,    0.0,    0.0,
+        // Back plane
+        0.0,    1.0,    0.0,
+        0.0,    1.0,    0.0,
+        0.0,    1.0,    0.0,
+        0.0,    1.0,    0.0,
+        // Right
+        0.0,    0.0,    1.0,
+        0.0,    0.0,    1.0,
+        0.0,    0.0,    1.0,
+        0.0,    0.0,    1.0,
+        // Left
+        1.0,    1.0,    0.0,
+        1.0,    1.0,    0.0,
+        1.0,    1.0,    0.0,
+        1.0,    1.0,    0.0,
+        // Top
+        1.0,    0.0,    1.0,
+        1.0,    0.0,    1.0,
+        1.0,    0.0,    1.0,
+        1.0,    0.0,    1.0,
+        // Bottom
+        0.0,    1.0,    1.0,
+        0.0,    1.0,    1.0,
+        0.0,    1.0,    1.0,
+        0.0,    1.0,    1.0,
+    };
+    
+    vector<GLfloat> seat = {
+        1.0,    0.0,    0.0,
+        1.0,    0.0,    0.0,
+        1.0,    0.0,    0.0,
+        1.0,    0.0,    0.0,
+        // Back plane
+        0.0,    1.0,    0.0,
+        0.0,    1.0,    0.0,
+        0.0,    1.0,    0.0,
+        0.0,    1.0,    0.0,
+        // Right
+        0.0,    0.0,    1.0,
+        0.0,    0.0,    1.0,
+        0.0,    0.0,    1.0,
+        0.0,    0.0,    1.0,
+        // Left
+        1.0,    1.0,    0.0,
+        1.0,    1.0,    0.0,
+        1.0,    1.0,    0.0,
+        1.0,    1.0,    0.0,
+        // Top
+        1.0,    0.0,    1.0,
+        1.0,    0.0,    1.0,
+        1.0,    0.0,    1.0,
+        1.0,    0.0,    1.0,
+        // Bottom
+        0.0,    1.0,    1.0,
+        0.0,    1.0,    1.0,
+        0.0,    1.0,    1.0,
+        0.0,    1.0,    1.0,
+    };
+    
+    vector<GLfloat> cube2 = {
+        // Front plane
+        0.0,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Back plane
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Right
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Left
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Top
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Bottom
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        
+    };
+    
+    vector<GLfloat> leg = {
+        // Front plane
+        0.0,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Back plane
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Right
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Left
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Top
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Bottom
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        
+    };
+
+    
+    vector<vector<GLfloat>> scene_colors = {posz, seat, cube2, leg, leg, leg, leg};
+    return vector2array(vector_concat(scene_colors));
 }
 
 void display_func() {
@@ -242,81 +417,15 @@ void display_func() {
     glLoadIdentity();
     
     glRotatef(theta, 0.0, 1.0, 0.0);
-    glRotatef(theta, 1.0, 0.0, 0.0);
+//    glRotatef(theta, 1.0, 0.0, 0.0);
     
-   vector<GLfloat> vertices = {
-        // Front plane
-        +1.0,   +1.0,   +1.0,
-        -1.0,   +1.0,   +1.0,
-        -1.0,   -1.0,   +1.0,
-        +1.0,   -1.0,   +1.0,
-        // Back plane
-        +1.0,   +1.0,   -1.0,
-        -1.0,   +1.0,   -1.0,
-        -1.0,   -1.0,   -1.0,
-        +1.0,   -1.0,   -1.0,
-        // Right
-        +1.0,   +1.0,   -1.0,
-        +1.0,   +1.0,   +1.0,
-        +1.0,   -1.0,   +1.0,
-        +1.0,   -1.0,   -1.0,
-        // Left
-        -1.0,   +1.0,   -1.0,
-        -1.0,   +1.0,   +1.0,
-        -1.0,   -1.0,   +1.0,
-        -1.0,   -1.0,   -1.0,
-        // Top
-        +1.0,   +1.0,   +1.0,
-        -1.0,   +1.0,   +1.0,
-        -1.0,   +1.0,   -1.0,
-        +1.0,   +1.0,   -1.0,
-        // Bottom
-        +1.0,   -1.0,   +1.0,
-        -1.0,   -1.0,   +1.0,
-        -1.0,   -1.0,   -1.0,
-        +1.0,   -1.0,   -1.0,
-    };
-    
-    GLfloat colors[] = {
-        // Front plane
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Back plane
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Right
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Left
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Top
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Bottom
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-    };
-    
-    vertices = mat_mult(translation_matrix(2, 0, 0), vertices);
-    
+    GLfloat* vertices = init_scene();
+    GLfloat* colors = init_color();
     
     glVertexPointer(3,          // 3 components (x, y, z)
                     GL_FLOAT,   // Vertex type is GL_FLOAT
                     0,          // Start position in referenced memory
-                    vector2array(vertices));  // Pointer to memory location to read from
+                    vertices);  // Pointer to memory location to read from
     
     //pass the color pointer
     glColorPointer(3,           // 3 components (r, g, b)
@@ -325,10 +434,13 @@ void display_func() {
                    colors);     // Pointer to memory location to read from
     
     // Draw quad point planes: each 4 vertices
-    glDrawArrays(GL_QUADS, 0, 4*6);
+    glDrawArrays(GL_QUADS, 0, 4*(planes +6));
     
     glFlush();            //Finish rendering
     glutSwapBuffers();
+    
+    free(vertices);
+    free(colors);
 }
 
 void idle_func() {
