@@ -233,179 +233,359 @@ void init_camera() {
     glLoadIdentity();
     gluPerspective(50.0, 1.0, 2.0, 10.0);
     // Position camera at (2, 3, 5), attention at (0, 0, 0), up at (0, 1, 0)
-    gluLookAt(2.0, 3.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(0.1, 1.5, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
-vector<GLfloat> create_chair() {
-    vector<GLfloat> chair_seat = mat_mult(translation_matrix(0, 1, 0.5), mat_mult(scaling_matrix(1, 0.2, 1), build_cube()));
-    vector<GLfloat> seat_back = mat_mult(translation_matrix(0, 2, 0.025), mat_mult(rotation_matrix_x(90.0), mat_mult(scaling_matrix(1, 0.05, 1.8), build_cube())));
-    vector<GLfloat> legFL = mat_mult(translation_matrix(-0.45, -0.1, 0.9), mat_mult(scaling_matrix(0.1, 2, 0.1), build_cube()));
+vector<GLfloat> create_smallTable() {
+    vector<GLfloat> top = mat_mult(translation_matrix(0, 0.5, 0.45), mat_mult(scaling_matrix(1, 0.2, 1), build_cube()));
+    vector<GLfloat> legFL = mat_mult(translation_matrix(-0.45, 0, 0.9), mat_mult(scaling_matrix(0.05, 1, 0.05), build_cube()));
     vector<GLfloat> legBL = mat_mult(translation_matrix(0.9, 0, 0), legFL);
     vector<GLfloat> legBR = mat_mult(translation_matrix(0, 0, -0.85), legFL);
     vector<GLfloat> legFR = mat_mult(translation_matrix(0, 0, -0.85), legBL);
-    vector<vector<GLfloat>> chair_cubes = {chair_seat, seat_back, legFL, legBL, legBR, legFR};
+    vector<GLfloat> legconnectR = mat_mult(translation_matrix(0, -0.52, 0.45), mat_mult(scaling_matrix(1, 1, 0.85), mat_mult(rotation_matrix_x(-90.0),legFR)));
+    vector<GLfloat> legconnectL = mat_mult(translation_matrix(-0.9, 0, 0), legconnectR);
+    vector<vector<GLfloat>> smallTable_parts = {top, legFL, legBL, legBR, legFR, legconnectR, legconnectL};
     
-    vector<GLfloat> chair = vector_concat(chair_cubes);
-    chair = mat_mult(translation_matrix(0, 0, -1), mat_mult(scaling_matrix(0.5, 0.5, 0.5), chair));
-    planes = (int)chair_cubes.size() * 6;
-    return chair;
+    vector<GLfloat> smallTable = vector_concat(smallTable_parts);
+    smallTable = mat_mult(translation_matrix(-1, -0.2, -1), mat_mult(scaling_matrix(0.5, 0.5, 0.5), smallTable));
+    planes = (int)smallTable_parts.size() * 6;
+    return smallTable;
 }
 
-vector<GLfloat> create_desk() {
-    vector<GLfloat> top;
-    vector<GLfloat> leg1;
-    vector<GLfloat> leg2;
-    vector<GLfloat> leg3;
-    vector<GLfloat> leg4;
+vector<GLfloat> create_coffeeTable() {
+    vector<GLfloat> top = mat_mult(translation_matrix(0.3, 0.5, 0.55), mat_mult(scaling_matrix(1.55, 0.2, 1), build_cube()));
+    vector<GLfloat> legFL = mat_mult(translation_matrix(-0.45, -0.1, 1), mat_mult(scaling_matrix(0.05, 1, 0.05), build_cube()));
+    vector<GLfloat> legBL = mat_mult(translation_matrix(1.5, 0, 0), legFL);
+    vector<GLfloat> legBR = mat_mult(translation_matrix(0, 0, -0.85), legFL);
+    vector<GLfloat> legFR = mat_mult(translation_matrix(0, 0, -0.85), legBL);
+    vector<GLfloat> legconnectR = mat_mult(translation_matrix(0, -0.65, 0.5), mat_mult(scaling_matrix(1, 0.55, 0.85), mat_mult(rotation_matrix_x(-90.0),legFR)));
+    vector<GLfloat> legconnectL = mat_mult(translation_matrix(-1.5, 0, 0), legconnectR);
+    vector<GLfloat> legconnectF = mat_mult(translation_matrix(-0.7, 0, 0.56), mat_mult(scaling_matrix(1.75, 1, 1), mat_mult(rotation_matrix_y(90.0), legconnectL)));
+    vector<GLfloat> legconnectB = mat_mult(translation_matrix(0, 0, -0.85),legconnectF);
+    vector<vector<GLfloat>> coffeeTable_parts = {top, legFL, legBL, legBR, legFR, legconnectR, legconnectL, legconnectB ,legconnectF};
     
+    vector<GLfloat> coffeeTable = vector_concat(coffeeTable_parts);
+    coffeeTable = mat_mult(translation_matrix(0, 0, 0.5), mat_mult(scaling_matrix(0.5, 0.5, 0.5), coffeeTable));
     
-    vector<vector<GLfloat>> desk = {top, leg1, leg2, leg3, leg4};
-    return vector_concat(desk);
+    planes = planes + (int)coffeeTable_parts.size() * 6;
+    return coffeeTable;
+}
+
+vector<GLfloat> create_carpet() {
+    vector<GLfloat> carpet = mat_mult(translation_matrix(0.2, -0.29, 0.8), mat_mult(scaling_matrix(1.5, 0.01, 0.75), build_cube()));
+    planes = planes + 6;
+    return carpet;
+}
+
+vector<GLfloat> create_couch() {
+    vector<GLfloat> base = mat_mult(translation_matrix(0.3, -0.2, -0.8), mat_mult(scaling_matrix(1.6, 0.25, 0.75), build_cube()));
+    vector<GLfloat> back = mat_mult(translation_matrix(0, 0.5, -1.2), mat_mult(scaling_matrix(1, 0.5, 0.5), mat_mult(rotation_matrix_x(-90.0), base)));
+    vector<GLfloat> cushionR = mat_mult(translation_matrix(0.5, 0.1, -0.09), mat_mult(scaling_matrix(0.45, 0.5, 0.8), base));
+    vector<GLfloat> cushionL = mat_mult(translation_matrix(-0.65, 0, 0), cushionR);
+    vector<GLfloat> armrestR = mat_mult(translation_matrix(1.05, -0.15, 0), mat_mult(rotation_matrix_z(90.0), mat_mult(scaling_matrix(0.25, 0.65, 1), cushionR)));
+    vector<GLfloat> armrestL = mat_mult(translation_matrix(-1.5, 0, 0), armrestR);
+    vector<GLfloat> pillowR = mat_mult(translation_matrix(0.38, 0.75, -1.06), mat_mult(scaling_matrix(0.6, 0.65, 0.5), mat_mult(rotation_matrix_x(-100.0), cushionR)));
+    vector<GLfloat> pillowM = mat_mult(translation_matrix(-0.48, 0, 0), pillowR);
+    vector<GLfloat> pillowL = mat_mult(translation_matrix(-0.95, 0, 0), pillowR);
+    vector<GLfloat> pillowSR = mat_mult(translation_matrix(0.6, 0, 0.2), mat_mult(scaling_matrix(0.8, 0.8, 1.1), pillowM));
+    vector<GLfloat> pillowSL = mat_mult(translation_matrix(-0.35, 0, 0.3), mat_mult(rotation_matrix_y(25), pillowSR));
+    vector<GLfloat> pillowSL2 = mat_mult(translation_matrix(-0.3, 0, 0), pillowSL);
+    
+    vector<vector<GLfloat>> couch_parts = {base, back, cushionR, cushionL, armrestR, armrestL, pillowR, pillowM, pillowL, pillowSR, pillowSL, pillowSL2};
+    vector<GLfloat> couch = vector_concat(couch_parts);
+    planes = planes + (int)couch_parts.size() * 6;
+    return couch;
+}
+
+vector<GLfloat> create_ottoman() {
+    vector<GLfloat> base = mat_mult(translation_matrix(0, 0, 2), mat_mult(scaling_matrix(0.5, 0.3, 0.5), build_cube()));
+    vector<GLfloat> top = mat_mult(translation_matrix(0, 0.24, 2), mat_mult(scaling_matrix(0.5, 0.15, 0.5), build_cube()));
+    
+    vector<vector<GLfloat>> ottoman_parts = {base, top};
+    vector<GLfloat> ottoman = vector_concat(ottoman_parts);
+    ottoman = mat_mult(translation_matrix(0.8, -0.2, -0.5), ottoman);
+    planes = planes + (int)ottoman_parts.size() * 6;
+    return ottoman;
 }
 
 // Construct the scene using objects built from cubes/prisms
 GLfloat* init_scene() {
-    vector<GLfloat> posZ  = mat_mult(translation_matrix(0, 0, 1), mat_mult(scaling_matrix(0.5, 0.5, 0.5), build_cube()));
-    vector<vector<GLfloat>> scene = {posZ, create_chair()};
+    vector<vector<GLfloat>> scene = {create_ottoman(), create_smallTable(), create_coffeeTable(), create_carpet(), create_couch()};
     return vector2array(vector_concat(scene));
 }
 
 // Construct the color mapping of the scene
 GLfloat* init_color() {
-    vector<GLfloat> posz = {
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
+    vector<GLfloat> SteelBlue = {
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
         // Back plane
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
         // Right
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
         // Left
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
         // Top
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
         // Bottom
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-    };
-    
-    vector<GLfloat> seat = {
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        // Back plane
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        // Right
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        // Left
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        // Top
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        // Bottom
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-    };
-    
-    vector<GLfloat> cube2 = {
-        // Front plane
-        0.0,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Back plane
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Right
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Left
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Top
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Bottom
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        
-    };
-    
-    vector<GLfloat> leg = {
-        // Front plane
-        0.0,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Back plane
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Right
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Left
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Top
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        // Bottom
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        0.5,    0.5,    0.5,
-        
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
+        0.275, 0.510, 0.706,
     };
 
     
-    vector<vector<GLfloat>> scene_colors = {posz, seat, cube2, leg, leg, leg, leg};
+    vector<GLfloat> lightSteelBlue = {
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        //back
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        //right
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        //left
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        //top
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        //bottom
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        0.690, 0.769, 0.871,
+        
+    };
+    
+    vector<GLfloat> goldenRod = {
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        // Back plane
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        // Right
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        // Left
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        // Top
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        // Bottom
+        00.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+        0.722, 0.525, 0.043,
+    };
+    
+    vector<GLfloat> grey = {
+        // Front plane
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Back plane
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Right
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Left
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Top
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        // Bottom
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+        0.5,    0.5,    0.5,
+    };
+    
+    vector<GLfloat> black = {
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+        .000, 0.000, 0.000,
+    };
+    
+    vector<GLfloat> royalBlue = {
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+        0.255, 0.412, 0.882,
+    };
+    
+    vector<GLfloat> dodgerBlue = {
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+        0.118, 0.565, 1.000,
+    };
+    
+    vector<GLfloat> clBlue = {
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+        0.392, 0.584, 0.929,
+    };
+    
+    vector<vector<GLfloat>> scene_colors = {
+        //ottoman
+        royalBlue, SteelBlue,
+        //small table
+        goldenRod, black, black, black, black, black, black,
+        //coffee table
+        goldenRod, black, black, black, black, black, black, black, black,
+        //carpet
+        grey,
+        //couch
+        royalBlue, royalBlue, SteelBlue, SteelBlue, royalBlue, royalBlue, dodgerBlue, clBlue, lightSteelBlue, lightSteelBlue, dodgerBlue, clBlue};
     return vector2array(vector_concat(scene_colors));
 }
 
@@ -434,7 +614,7 @@ void display_func() {
                    colors);     // Pointer to memory location to read from
     
     // Draw quad point planes: each 4 vertices
-    glDrawArrays(GL_QUADS, 0, 4*(planes +6));
+    glDrawArrays(GL_QUADS, 0, 4*(planes+12));
     
     glFlush();            //Finish rendering
     glutSwapBuffers();
